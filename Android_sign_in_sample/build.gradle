@@ -23,5 +23,7 @@ android {
 }
 
 dependencies {
-	compile 'com.android.support:appcompat-v7:18.0.0'
+    compile project(':google-play-services_lib')
+    compile 'com.android.support:appcompat-v7:18.0.0'
+
 }
