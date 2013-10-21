@@ -1,3 +1,2 @@
 include ':Android_sign_in_sample'
-include ':google-play-services_lib'
 
