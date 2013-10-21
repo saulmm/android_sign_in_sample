@@ -31,7 +31,7 @@ public class MainActivity extends Activity implements
 
 	/**
 	 * When the activity creates, load all gui elements and
-	 * init the configuration of the google+ client
+	 * init the configuration of the google+ client.
 	 */
 	@Override
 	protected void onCreate (Bundle savedInstanceState) {
