@@ -15,6 +15,7 @@
 
 	<style name="MyTheme.ActionBar.TitleTextStyle" parent="@android:style/TextAppearance.Holo.Widget.ActionBar.Title">
 		<item name="android:textColor">@color/google_plus_color</item>
+		<item name="android:fontFamily">sans-serif-condensed</item>
 		<item name="android:textSize">22sp</item>
 	</style>
 

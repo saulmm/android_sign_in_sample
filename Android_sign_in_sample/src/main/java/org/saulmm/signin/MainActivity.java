@@ -6,12 +6,19 @@ import android.content.Intent;
 import android.content.IntentSender;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.plus.PlusClient;
+import com.google.android.gms.plus.model.people.Person;
+
+import static android.util.Log.d;
+import static android.util.Log.e;
 
 public class MainActivity extends Activity implements
 		View.OnClickListener,
@@ -27,6 +34,9 @@ public class MainActivity extends Activity implements
 	private PlusClient googlePlusClient;
 	private ConnectionResult connectionResult;
 	private SignInButton googleSignInButton;
+	private MenuItem logOutItem;
+	private MenuItem revokeItem;
+	private TextView jsonOutput;
 
 
 	/**
@@ -39,6 +49,75 @@ public class MainActivity extends Activity implements
 
 		initGUI();
 		initGPlusClient();
+	}
+
+
+	/**
+	 * Inflates the action bar menu with the selected menu layout
+	 * @param menu
+	 * @return
+	 */
+	@Override
+	public boolean onCreateOptionsMenu (Menu menu) {
+		getMenuInflater().inflate(R.menu.main, menu);
+		logOutItem  = menu.findItem(R.id.menu_log_out);
+		revokeItem = menu.findItem(R.id.menu_reboke);
+
+		logOutItem.setEnabled(false);
+		revokeItem.setEnabled(false);
+
+		return true;
+	}
+
+
+	@Override
+	public boolean onOptionsItemSelected (MenuItem item) {
+
+			switch (item.getItemId()) {
+				case R.id.menu_log_out:
+					logOut();
+					break;
+
+				case R.id.menu_reboke:
+					revokePermissions();
+					break;
+			}
+
+		return super.onOptionsItemSelected(item);
+	}
+
+
+	private void logOut () {
+		d("[DEBUG] org.saulmm.signin.MainActivity.logOut ", "Is connected: "+googlePlusClient.isConnected());
+		if(googlePlusClient.isConnected()) {
+			googlePlusClient.clearDefaultAccount();
+			googlePlusClient.disconnect();
+			googlePlusClient.connect();
+
+			Toast.makeText(this, "Logged out", Toast.LENGTH_LONG).show();
+
+			if(getActionBar() != null) {
+				logOutItem.setEnabled(false);
+				revokeItem.setEnabled(false);
+			}
+
+			jsonOutput.setText("");
+			googleSignInButton.setEnabled(true);
+		}
+	}
+
+
+	private void revokePermissions () {
+		if(googlePlusClient.isConnected())
+			googlePlusClient.clearDefaultAccount();
+			googlePlusClient.revokeAccessAndDisconnect(new PlusClient.OnAccessRevokedListener() {
+				@Override
+				public void onAccessRevoked (ConnectionResult connectionResult) {
+					Toast.makeText(MainActivity.this ,"Revoked access", Toast.LENGTH_LONG).show();
+			}
+		});
+
+		logOut();
 	}
 
 
@@ -73,9 +152,16 @@ public class MainActivity extends Activity implements
 	 */
 	private void initGUI () {
 		setContentView(R.layout.activity_main);
+		jsonOutput = (TextView) findViewById(R.id.json_output);
 		connectionProgressDialog = new ProgressDialog(this);
+		connectionProgressDialog.setCancelable(false);
 		googleSignInButton = (SignInButton) findViewById(R.id.sign_in_button);
 		googleSignInButton.setOnClickListener(this);
+
+		if(getActionBar() != null) {
+			getActionBar().setDisplayShowHomeEnabled(true);
+			getActionBar().setDisplayShowTitleEnabled(true);
+		}
 	}
 
 
@@ -133,7 +219,6 @@ public class MainActivity extends Activity implements
 	private void sigInWithGoogle () {
 
 		if(!googlePlusClient.isConnected()) {
-
 			if(connectionResult == null) {
 				connectionProgressDialog.show();
 
@@ -142,7 +227,7 @@ public class MainActivity extends Activity implements
 					connectionResult.startResolutionForResult(MainActivity.this, REQUEST_CODE_RESOLVE_ERR);
 
 				} catch(IntentSender.SendIntentException e) {
-					Log.e("[ERROR] org.saulmm.signin.MainActivity.sigInWithGoogle ", "" + e.getMessage());
+					e("[ERROR] org.saulmm.signin.MainActivity.sigInWithGoogle ", "" + e.getMessage());
 					connectionResult = null;
 					googlePlusClient.connect();
 				}
@@ -155,15 +240,79 @@ public class MainActivity extends Activity implements
 	@Override
 	public void onConnected (Bundle bundle) {
 		connectionProgressDialog.dismiss();
-		Toast.makeText(this, getString(R.string.now_connected), Toast.LENGTH_LONG).show();
 
+		fillOutputTextView(googlePlusClient.getCurrentPerson());
+
+		d("[DEBUG] org.saulmm.signin.MainActivity.onConnected ", ":"+googlePlusClient.getCurrentPerson().toString());
+		d("[DEBUG] org.saulmm.signin.MainActivity.onConnected ", "Connected");
+
+		if(getActionBar() != null) {
+			logOutItem.setEnabled(true);
+			revokeItem.setEnabled(true);
+		}
+
+		googleSignInButton.setEnabled(false);
 	}
+
 
 
 	@Override
 	public void onDisconnected () {
 		Toast.makeText(this, getString(R.string.now_disconnected), Toast.LENGTH_LONG).show();
+		d("[DEBUG] org.saulmm.signin.MainActivity.onDisconnected ", "Disconnected");
+		if(getActionBar() != null) {
+			logOutItem.setEnabled(false);
+			revokeItem.setEnabled(false);
+		}
 
+		recreate();
+	}
+
+
+	private void fillOutputTextView (Person currentPerson) {
+		String parsedJson = beautifyJSon(currentPerson.toString());
+
+		Log.d("[DEBUG] org.saulmm.signin.MainActivity.fillOutputTextView ", "Result: " + parsedJson);
+		jsonOutput.setText(parsedJson);
+
+	}
+
+
+	/**
+	 * Beautifies the given json
+	 */
+	private String beautifyJSon (String json) {
+		String parsedJson = "";
+		int childLevel = 0;
+
+		for (int i = 0; i < json.length(); i++) {
+			String letter = ""+json.charAt(i);
+
+			if(letter.equals("}") || letter.equals("]")) {
+				parsedJson += "\n";
+
+				for (int j = 0; j < childLevel -1; j++) {
+					parsedJson += "\t";
+				}
+				childLevel--;
+			}
+
+
+			parsedJson += letter;
+
+			if(letter.equals("{")) {
+				childLevel++;
+			}
+
+			if (letter.equals(",") || letter.equals("{") || letter.equals("[")) {
+				parsedJson += "\n";
+
+				for (int j = 0; j < childLevel; j++) {
+					parsedJson += "\t";
+				}
+			}
+		}
+		return parsedJson;
 	}
 
 

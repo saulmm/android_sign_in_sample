@@ -2,9 +2,10 @@
 <resources>
 
     <string name="app_name">Android sign in…</string>
-    <string name="action_settings">Settings</string>
+    <string name="revoke_mb">Revoke</string>
 	<string name="now_connected">You are now connected with google+</string>
 	<string name="now_disconnected">You are now disconnected from google+</string>
-	<string name="title_tv">Android sign in sample</string>
+	<string name="title_tv">Press the below sign in button to sign in with google. In the settings menu you can revoke permissions and log out.</string>
+	<string name="disconnect_mb">Log out</string>
 
 </resources>

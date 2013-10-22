@@ -12,6 +12,7 @@
 	<LinearLayout
 			android:layout_height="0dp"
 			android:layout_width="match_parent"
+			android:orientation="vertical"
 			android:layout_weight="1">
 
 			<TextView
@@ -21,7 +22,23 @@
 					android:text="@string/title_tv"
 					android:fontFamily="sans-serif-light"
 					android:textColor="@color/google_plus_color"
-					android:textSize="40sp"/>
+					android:textSize="20sp"/>
+
+			<ScrollView
+					android:layout_marginTop="@dimen/activity_vertical_margin"
+					android:layout_marginBottom="@dimen/activity_vertical_margin"
+					android:layout_height="match_parent"
+					android:layout_width="match_parent">
+
+				<TextView
+						android:id="@+id/json_output"
+						android:layout_height="wrap_content"
+						android:layout_width="match_parent"
+						android:fontFamily="sans-serif"
+						tools:text="this is atest{\n}"/>
+
+			</ScrollView>
+
 
 	</LinearLayout>
 
