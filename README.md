@@ -1,6 +1,13 @@
 Android sign in sample
 =============================
 
+Features
+------------
+- Google+ sign in
+- Google+ log out
+- Google+ revoke permissions
+
+
 Screenshots:
 ----------------
 
@@ -52,13 +59,9 @@ You can see your available __play services__ versions in your sdk folder:
 __
 
 
-Features
-------------
-- Google+ sign in
-- Google+ log out
-- Google+ revoke permissions
+
 
 Refs
 ------------
-https://developers.google.com/+/api/moment-types/
-http://www.sgoliver.net/blog/?p=4150
+- https://developers.google.com/+/api/moment-types/
+- http://www.sgoliver.net/blog/?p=4150
